@@ -241,9 +241,7 @@ function App() {
         <div className="max-w-3xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                <span className="text-white text-lg">N</span>
-              </div>
+              <img src="/logo.svg" alt="Nudge" className="w-10 h-10" />
               Nudge
             </h1>
             <div className="flex bg-gray-100 rounded-full p-1">
