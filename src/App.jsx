@@ -1,9 +1,85 @@
 import { useState, useEffect } from 'react'
 
-// Noah's assignments - will be fetched from calendar later
+// Noah's assignments - synced from Blackboard calendar + manual adds
 const initialAssignments = [
+  // Week 14 - This week (Jan 27 - Feb 2)
   {
     id: 1,
+    title: "СМИ Presentation",
+    subject: "Russian",
+    dueDate: "2026-01-31T12:00:00",
+    description: "Oral presentation on СМИ (media)",
+    completed: false
+  },
+  {
+    id: 2,
+    title: "Grammar revision test",
+    subject: "Russian",
+    dueDate: "2026-01-31T23:59:00",
+    description: "Revise то что; все что; тот кто; те кто; все кто. Complete exercises and upload to Bb Discussion forum.",
+    completed: false
+  },
+  {
+    id: 3,
+    title: "Reading/Essay homework",
+    subject: "Russian",
+    dueDate: "2026-01-30T12:00:00",
+    description: "Check 'Homework for after Christmas' in Read/Essay Folder / Weeks 13-23",
+    completed: false
+  },
+  // Week 15 (Feb 3-9)
+  {
+    id: 4,
+    title: "Vocabulary test prep",
+    subject: "Russian",
+    dueDate: "2026-02-07T12:00:00",
+    description: "Learn vocabulary p. 32 of handbook. Read phrases p. 31. Do exercises p. 33.",
+    completed: false
+  },
+  {
+    id: 5,
+    title: "Debate: Best entertainment",
+    subject: "Russian",
+    dueDate: "2026-02-07T12:00:00",
+    description: "Prepare for debate about best type of entertainment",
+    completed: false
+  },
+  {
+    id: 6,
+    title: "Grammar revision test",
+    subject: "Russian",
+    dueDate: "2026-02-07T23:59:00",
+    description: "Revise conjunctions of time. Complete exercises and upload to Bb Discussion forum.",
+    completed: false
+  },
+  {
+    id: 7,
+    title: "Prepare translation",
+    subject: "Russian",
+    dueDate: "2026-02-09T23:59:00",
+    description: "R-E Translation - prepare for submission in Week 16",
+    completed: false
+  },
+  // Week 16 (Feb 10-16)
+  {
+    id: 8,
+    title: "Submit translation",
+    subject: "Russian",
+    dueDate: "2026-02-13T12:00:00",
+    description: "R-E Translation Group A - submit translation",
+    completed: false
+  },
+  {
+    id: 9,
+    title: "Grammar revision test",
+    subject: "Russian",
+    dueDate: "2026-02-14T23:59:00",
+    description: "Revise conjunctions of cause. Complete exercises and upload to Bb Discussion forum.",
+    completed: false
+  },
+  // From Blackboard calendar
+  {
+    id: 10,
     title: "10-min In-class Presentation",
     subject: "Modern Languages",
     dueDate: "2026-03-20T12:00:00",
@@ -230,6 +306,7 @@ function Section({ title, assignments, urgency, subjectColors, onToggleComplete 
 }
 
 function AssignmentCard({ assignment, urgency, color, onToggleComplete }) {
+  const [expanded, setExpanded] = useState(false)
   const dueDate = new Date(assignment.dueDate)
   
   const formatDate = (date) => {
@@ -259,22 +336,28 @@ function AssignmentCard({ assignment, urgency, color, onToggleComplete }) {
   return (
     <div 
       className={`bg-[#1a1a1e] rounded-xl p-4 border-l-4 ${urgencyStyles[urgency]} 
-        hover:bg-[#222226] transition-colors cursor-pointer
+        hover:bg-[#222226] transition-colors
         ${assignment.completed ? 'opacity-60' : ''}`}
-      onClick={() => onToggleComplete(assignment.id)}
     >
       <div className="flex items-start gap-3">
-        <div 
-          className={`mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0
-            ${assignment.completed ? 'bg-green-500 border-green-500' : 'border-gray-500'}`}
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleComplete(assignment.id)
+          }}
+          className={`mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors
+            ${assignment.completed ? 'bg-green-500 border-green-500' : 'border-gray-500 hover:border-gray-400'}`}
         >
           {assignment.completed && (
             <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
             </svg>
           )}
-        </div>
-        <div className="flex-1 min-w-0">
+        </button>
+        <div 
+          className="flex-1 min-w-0 cursor-pointer"
+          onClick={() => setExpanded(!expanded)}
+        >
           <div className="flex items-center gap-2 mb-1">
             <span 
               className="w-2 h-2 rounded-full flex-shrink-0" 
@@ -285,6 +368,9 @@ function AssignmentCard({ assignment, urgency, color, onToggleComplete }) {
           <h3 className={`font-medium ${assignment.completed ? 'line-through text-gray-500' : ''}`}>
             {assignment.title}
           </h3>
+          {expanded && assignment.description && (
+            <p className="text-sm text-gray-400 mt-2">{assignment.description}</p>
+          )}
         </div>
         <div className="text-right flex-shrink-0">
           <div className={`text-sm font-medium ${
