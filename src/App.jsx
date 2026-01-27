@@ -1,15 +1,94 @@
 import { useState, useEffect } from 'react'
 
+// Noah's weekly schedule - free time windows
+const weeklySchedule = {
+  monday: {
+    classes: [
+      { start: '11:00', end: '12:00', name: 'Russian Oral/Presentation' },
+      { start: '14:00', end: '15:00', name: 'Russian Translation' },
+      { start: '15:30', end: '16:30', name: 'Spanish Int.Skills' }
+    ],
+    freeSlots: [
+      { start: '09:00', end: '11:00', label: 'Morning' },
+      { start: '12:00', end: '14:00', label: 'Lunch break' },
+      { start: '16:30', end: '20:00', label: 'Evening' }
+    ]
+  },
+  tuesday: {
+    classes: [
+      { start: '10:00', end: '11:00', name: 'Latin American Poetry' },
+      { start: '12:00', end: '13:00', name: 'Russian Read/Essay' },
+      { start: '15:00', end: '16:00', name: 'Spanish Grammar' },
+      { start: '16:00', end: '17:00', name: 'Engineers of the Human Soul' },
+      { start: '17:00', end: '18:00', name: 'Careers Talk' }
+    ],
+    freeSlots: [
+      { start: '09:00', end: '10:00', label: 'Early morning' }
+    ]
+  },
+  wednesday: {
+    classes: [
+      { start: '09:00', end: '10:00', name: 'Spanish Int.Skills' },
+      { start: '11:00', end: '12:00', name: 'Russian Grammar' },
+      { start: '13:00', end: '15:00', name: 'Therapy' }
+    ],
+    freeSlots: [
+      { start: '10:00', end: '11:00', label: 'Mid-morning' },
+      { start: '15:00', end: '20:00', label: 'Afternoon/Evening' }
+    ]
+  },
+  thursday: {
+    classes: [
+      { start: '13:00', end: '14:00', name: 'Engineers of the Human Soul' }
+    ],
+    freeSlots: [
+      { start: '09:00', end: '13:00', label: 'Morning' },
+      { start: '14:00', end: '20:00', label: 'Afternoon/Evening' }
+    ]
+  },
+  friday: {
+    classes: [],
+    freeSlots: [
+      { start: '09:00', end: '20:00', label: 'All day' }
+    ]
+  },
+  saturday: {
+    classes: [],
+    freeSlots: [
+      { start: '10:00', end: '20:00', label: 'All day' }
+    ]
+  },
+  sunday: {
+    classes: [],
+    freeSlots: [
+      { start: '10:00', end: '20:00', label: 'All day' }
+    ]
+  }
+}
+
+// Task duration estimates (in minutes)
+const taskDurations = {
+  'presentation': 120,
+  'essay': 180,
+  'homework': 60,
+  'test': 90,
+  'revision': 60,
+  'translation': 90,
+  'debate': 45,
+  'vocabulary': 45,
+  'default': 60
+}
+
 // Noah's assignments - synced from Blackboard calendar + manual adds
 const initialAssignments = [
-  // Week 14 - This week (Jan 27 - Feb 2)
   {
     id: 1,
     title: "СМИ Presentation",
     subject: "Russian",
     dueDate: "2026-01-31T12:00:00",
     description: "Oral presentation on СМИ (media)",
-    completed: false
+    completed: false,
+    taskType: 'presentation'
   },
   {
     id: 2,
@@ -17,7 +96,8 @@ const initialAssignments = [
     subject: "Russian",
     dueDate: "2026-01-31T23:59:00",
     description: "Revise то что; все что; тот кто; те кто; все кто. Complete exercises and upload to Bb Discussion forum.",
-    completed: false
+    completed: false,
+    taskType: 'revision'
   },
   {
     id: 3,
@@ -25,16 +105,17 @@ const initialAssignments = [
     subject: "Russian",
     dueDate: "2026-01-30T12:00:00",
     description: "Check 'Homework for after Christmas' in Read/Essay Folder / Weeks 13-23",
-    completed: false
+    completed: false,
+    taskType: 'homework'
   },
-  // Week 15 (Feb 3-9)
   {
     id: 4,
     title: "Vocabulary test prep",
     subject: "Russian",
     dueDate: "2026-02-07T12:00:00",
     description: "Learn vocabulary p. 32 of handbook. Read phrases p. 31. Do exercises p. 33.",
-    completed: false
+    completed: false,
+    taskType: 'vocabulary'
   },
   {
     id: 5,
@@ -42,7 +123,8 @@ const initialAssignments = [
     subject: "Russian",
     dueDate: "2026-02-07T12:00:00",
     description: "Prepare for debate about best type of entertainment",
-    completed: false
+    completed: false,
+    taskType: 'debate'
   },
   {
     id: 6,
@@ -50,7 +132,8 @@ const initialAssignments = [
     subject: "Russian",
     dueDate: "2026-02-07T23:59:00",
     description: "Revise conjunctions of time. Complete exercises and upload to Bb Discussion forum.",
-    completed: false
+    completed: false,
+    taskType: 'revision'
   },
   {
     id: 7,
@@ -58,16 +141,17 @@ const initialAssignments = [
     subject: "Russian",
     dueDate: "2026-02-09T23:59:00",
     description: "R-E Translation - prepare for submission in Week 16",
-    completed: false
+    completed: false,
+    taskType: 'translation'
   },
-  // Week 16 (Feb 10-16)
   {
     id: 8,
     title: "Submit translation",
     subject: "Russian",
     dueDate: "2026-02-13T12:00:00",
     description: "R-E Translation Group A - submit translation",
-    completed: false
+    completed: false,
+    taskType: 'translation'
   },
   {
     id: 9,
@@ -75,16 +159,17 @@ const initialAssignments = [
     subject: "Russian",
     dueDate: "2026-02-14T23:59:00",
     description: "Revise conjunctions of cause. Complete exercises and upload to Bb Discussion forum.",
-    completed: false
+    completed: false,
+    taskType: 'revision'
   },
-  // From Blackboard calendar
   {
     id: 10,
     title: "10-min In-class Presentation",
     subject: "Modern Languages",
     dueDate: "2026-03-20T12:00:00",
     description: "Assignment 1 - 10 minute In-class Presentation",
-    completed: false
+    completed: false,
+    taskType: 'presentation'
   }
 ]
 
@@ -92,13 +177,24 @@ const subjectColors = {
   'Russian': '#ef4444',
   'Linguistics': '#8b5cf6',
   'Modern Languages': '#6366f1',
+  'Spanish': '#f59e0b',
   'Other': '#6b7280'
 }
+
+// Onboarding checklist
+const onboardingSteps = [
+  { id: 'lms', label: 'Connect your LMS', completed: true },
+  { id: 'schedule', label: 'Add class schedule', completed: true },
+  { id: 'preferences', label: 'Set study preferences', completed: false },
+  { id: 'notifications', label: 'Enable notifications', completed: false }
+]
 
 function App() {
   const [assignments, setAssignments] = useState(initialAssignments)
   const [view, setView] = useState('list')
   const [filter, setFilter] = useState('all')
+  const [showOnboarding, setShowOnboarding] = useState(true)
+  const [selectedAssignment, setSelectedAssignment] = useState(null)
 
   const subjects = [...new Set(assignments.map(a => a.subject))]
   
@@ -134,6 +230,10 @@ function App() {
       a.id === id ? { ...a, completed: !a.completed } : a
     ))
   }
+
+  const completedSteps = onboardingSteps.filter(s => s.completed).length
+  const totalSteps = onboardingSteps.length
+  const onboardingProgress = Math.round((completedSteps / totalSteps) * 100)
 
   return (
     <div className="min-h-screen bg-[#0a0a0b] text-white">
@@ -203,11 +303,21 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-4 py-6">
+        {/* Onboarding Checklist */}
+        {showOnboarding && onboardingProgress < 100 && (
+          <OnboardingChecklist 
+            steps={onboardingSteps}
+            progress={onboardingProgress}
+            onDismiss={() => setShowOnboarding(false)}
+          />
+        )}
+
         {view === 'list' ? (
           <ListView 
             groups={groups} 
             subjectColors={subjectColors}
             onToggleComplete={toggleComplete}
+            onSelectAssignment={setSelectedAssignment}
           />
         ) : (
           <CalendarView 
@@ -216,11 +326,174 @@ function App() {
           />
         )}
       </main>
+
+      {/* Study Time Modal */}
+      {selectedAssignment && (
+        <StudyTimeModal 
+          assignment={selectedAssignment}
+          schedule={weeklySchedule}
+          taskDurations={taskDurations}
+          onClose={() => setSelectedAssignment(null)}
+        />
+      )}
     </div>
   )
 }
 
-function ListView({ groups, subjectColors, onToggleComplete }) {
+function OnboardingChecklist({ steps, progress, onDismiss }) {
+  return (
+    <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-2xl p-4 mb-6">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">🚀</span>
+          <span className="font-medium">Complete your setup</span>
+        </div>
+        <button 
+          onClick={onDismiss}
+          className="text-gray-500 hover:text-gray-300 text-sm"
+        >
+          Dismiss
+        </button>
+      </div>
+      
+      {/* Progress bar */}
+      <div className="h-2 bg-white/10 rounded-full mb-4 overflow-hidden">
+        <div 
+          className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      
+      <div className="grid grid-cols-2 gap-2">
+        {steps.map(step => (
+          <div 
+            key={step.id}
+            className={`flex items-center gap-2 text-sm ${
+              step.completed ? 'text-green-400' : 'text-gray-400'
+            }`}
+          >
+            {step.completed ? (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <div className="w-4 h-4 rounded-full border border-gray-500" />
+            )}
+            {step.label}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function StudyTimeModal({ assignment, schedule, taskDurations, onClose }) {
+  const duration = taskDurations[assignment.taskType] || taskDurations.default
+  const dueDate = new Date(assignment.dueDate)
+  
+  // Get suggested study times
+  const suggestions = getSuggestedTimes(assignment, schedule, taskDurations)
+  
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+      <div className="bg-[#1a1a1e] rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden">
+        <div className="p-4 border-b border-white/10">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">When to work on this</h2>
+            <button 
+              onClick={onClose}
+              className="text-gray-400 hover:text-white p-1"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <div className="p-4">
+          <div className="mb-4">
+            <h3 className="font-medium mb-1">{assignment.title}</h3>
+            <p className="text-sm text-gray-400">
+              Due {dueDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })} • 
+              Estimated {duration} mins
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <p className="text-sm text-gray-500 uppercase tracking-wide mb-2">Suggested times</p>
+            {suggestions.length > 0 ? (
+              suggestions.map((slot, idx) => (
+                <button
+                  key={idx}
+                  className="w-full text-left p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">{slot.day}</div>
+                      <div className="text-sm text-gray-400">{slot.time}</div>
+                    </div>
+                    <div className="text-xs text-indigo-400 bg-indigo-500/20 px-2 py-1 rounded-full">
+                      {slot.label}
+                    </div>
+                  </div>
+                </button>
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm">No suggestions available</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function getSuggestedTimes(assignment, schedule, taskDurations) {
+  const dueDate = new Date(assignment.dueDate)
+  const now = new Date()
+  const duration = taskDurations[assignment.taskType] || taskDurations.default
+  
+  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  
+  const suggestions = []
+  
+  // Look at the next 5 days
+  for (let i = 0; i < 5; i++) {
+    const checkDate = new Date(now)
+    checkDate.setDate(checkDate.getDate() + i)
+    
+    // Don't suggest times after the due date
+    if (checkDate > dueDate) break
+    
+    const dayName = days[checkDate.getDay()]
+    const daySchedule = schedule[dayName]
+    
+    if (daySchedule && daySchedule.freeSlots) {
+      for (const slot of daySchedule.freeSlots) {
+        // Check if slot is long enough
+        const slotStart = parseInt(slot.start.split(':')[0]) * 60 + parseInt(slot.start.split(':')[1])
+        const slotEnd = parseInt(slot.end.split(':')[0]) * 60 + parseInt(slot.end.split(':')[1])
+        const slotDuration = slotEnd - slotStart
+        
+        if (slotDuration >= duration) {
+          suggestions.push({
+            day: i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : dayNames[checkDate.getDay()],
+            time: `${slot.start} - ${slot.end}`,
+            label: slot.label
+          })
+        }
+      }
+    }
+    
+    if (suggestions.length >= 4) break
+  }
+  
+  return suggestions
+}
+
+function ListView({ groups, subjectColors, onToggleComplete, onSelectAssignment }) {
   const hasAssignments = Object.values(groups).some(g => g.length > 0)
 
   if (!hasAssignments) {
@@ -242,6 +515,7 @@ function ListView({ groups, subjectColors, onToggleComplete }) {
           urgency="overdue"
           subjectColors={subjectColors}
           onToggleComplete={onToggleComplete}
+          onSelectAssignment={onSelectAssignment}
         />
       )}
       {groups.today.length > 0 && (
@@ -251,6 +525,7 @@ function ListView({ groups, subjectColors, onToggleComplete }) {
           urgency="urgent"
           subjectColors={subjectColors}
           onToggleComplete={onToggleComplete}
+          onSelectAssignment={onSelectAssignment}
         />
       )}
       {groups.thisWeek.length > 0 && (
@@ -260,6 +535,7 @@ function ListView({ groups, subjectColors, onToggleComplete }) {
           urgency="upcoming"
           subjectColors={subjectColors}
           onToggleComplete={onToggleComplete}
+          onSelectAssignment={onSelectAssignment}
         />
       )}
       {groups.later.length > 0 && (
@@ -269,6 +545,7 @@ function ListView({ groups, subjectColors, onToggleComplete }) {
           urgency=""
           subjectColors={subjectColors}
           onToggleComplete={onToggleComplete}
+          onSelectAssignment={onSelectAssignment}
         />
       )}
       {groups.completed.length > 0 && (
@@ -278,13 +555,14 @@ function ListView({ groups, subjectColors, onToggleComplete }) {
           urgency="completed"
           subjectColors={subjectColors}
           onToggleComplete={onToggleComplete}
+          onSelectAssignment={onSelectAssignment}
         />
       )}
     </div>
   )
 }
 
-function Section({ title, assignments, urgency, subjectColors, onToggleComplete }) {
+function Section({ title, assignments, urgency, subjectColors, onToggleComplete, onSelectAssignment }) {
   return (
     <div>
       <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
@@ -298,6 +576,7 @@ function Section({ title, assignments, urgency, subjectColors, onToggleComplete 
             urgency={urgency}
             color={subjectColors[assignment.subject] || subjectColors['Other']}
             onToggleComplete={onToggleComplete}
+            onSelectAssignment={onSelectAssignment}
           />
         ))}
       </div>
@@ -305,7 +584,7 @@ function Section({ title, assignments, urgency, subjectColors, onToggleComplete 
   )
 }
 
-function AssignmentCard({ assignment, urgency, color, onToggleComplete }) {
+function AssignmentCard({ assignment, urgency, color, onToggleComplete, onSelectAssignment }) {
   const [expanded, setExpanded] = useState(false)
   const dueDate = new Date(assignment.dueDate)
   
@@ -369,7 +648,23 @@ function AssignmentCard({ assignment, urgency, color, onToggleComplete }) {
             {assignment.title}
           </h3>
           {expanded && assignment.description && (
-            <p className="text-sm text-gray-400 mt-2">{assignment.description}</p>
+            <div>
+              <p className="text-sm text-gray-400 mt-2">{assignment.description}</p>
+              {!assignment.completed && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onSelectAssignment(assignment)
+                  }}
+                  className="mt-3 text-sm text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  When should I do this?
+                </button>
+              )}
+            </div>
           )}
         </div>
         <div className="text-right flex-shrink-0">
