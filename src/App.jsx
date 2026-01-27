@@ -79,7 +79,7 @@ const taskDurations = {
   'default': 60
 }
 
-// Noah's assignments - synced from Blackboard calendar + manual adds
+// Noah's assignments
 const initialAssignments = [
   {
     id: 1,
@@ -174,14 +174,13 @@ const initialAssignments = [
 ]
 
 const subjectColors = {
-  'Russian': '#ef4444',
-  'Linguistics': '#8b5cf6',
-  'Modern Languages': '#6366f1',
-  'Spanish': '#f59e0b',
-  'Other': '#6b7280'
+  'Russian': { bg: '#fef2f2', text: '#dc2626', accent: '#ef4444' },
+  'Linguistics': { bg: '#f5f3ff', text: '#7c3aed', accent: '#8b5cf6' },
+  'Modern Languages': { bg: '#eef2ff', text: '#4f46e5', accent: '#6366f1' },
+  'Spanish': { bg: '#fffbeb', text: '#d97706', accent: '#f59e0b' },
+  'Other': { bg: '#f9fafb', text: '#4b5563', accent: '#6b7280' }
 }
 
-// Onboarding checklist
 const onboardingSteps = [
   { id: 'lms', label: 'Connect your LMS', completed: true },
   { id: 'schedule', label: 'Add class schedule', completed: true },
@@ -236,31 +235,34 @@ function App() {
   const onboardingProgress = Math.round((completedSteps / totalSteps) * 100)
 
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-white">
+    <div className="min-h-screen bg-[#f8f9fa]">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-[#0a0a0b]/80 backdrop-blur-lg border-b border-white/5">
-        <div className="max-w-2xl mx-auto px-4 py-4">
+      <header className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-3xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <span className="text-3xl">👋</span> Nudge
+            <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                <span className="text-white text-lg">N</span>
+              </div>
+              Nudge
             </h1>
-            <div className="flex gap-2">
+            <div className="flex bg-gray-100 rounded-full p-1">
               <button
                 onClick={() => setView('list')}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                   view === 'list' 
-                    ? 'bg-indigo-500 text-white' 
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                    ? 'bg-white text-gray-900 shadow-sm' 
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 List
               </button>
               <button
                 onClick={() => setView('calendar')}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                   view === 'calendar' 
-                    ? 'bg-indigo-500 text-white' 
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                    ? 'bg-white text-gray-900 shadow-sm' 
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 Calendar
@@ -269,40 +271,44 @@ function App() {
           </div>
           
           {/* Filters */}
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
             <button
               onClick={() => setFilter('all')}
-              className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition-colors ${
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
                 filter === 'all'
-                  ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/50'
-                  : 'bg-white/5 text-gray-400 border border-transparent hover:bg-white/10'
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
               }`}
             >
-              All
+              All tasks
             </button>
-            {subjects.map(subject => (
-              <button
-                key={subject}
-                onClick={() => setFilter(subject)}
-                className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                  filter === subject
-                    ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/50'
-                    : 'bg-white/5 text-gray-400 border border-transparent hover:bg-white/10'
-                }`}
-              >
-                <span 
-                  className="w-2 h-2 rounded-full" 
-                  style={{ backgroundColor: subjectColors[subject] || subjectColors['Other'] }}
-                />
-                {subject}
-              </button>
-            ))}
+            {subjects.map(subject => {
+              const colors = subjectColors[subject] || subjectColors['Other']
+              return (
+                <button
+                  key={subject}
+                  onClick={() => setFilter(subject)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2 ${
+                    filter === subject
+                      ? 'text-white'
+                      : 'bg-white border border-gray-200 hover:bg-gray-50'
+                  }`}
+                  style={filter === subject ? { backgroundColor: colors.accent } : { color: colors.text }}
+                >
+                  <span 
+                    className="w-2 h-2 rounded-full" 
+                    style={{ backgroundColor: colors.accent }}
+                  />
+                  {subject}
+                </button>
+              )
+            })}
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-2xl mx-auto px-4 py-6">
+      <main className="max-w-3xl mx-auto px-4 py-6">
         {/* Onboarding Checklist */}
         {showOnboarding && onboardingProgress < 100 && (
           <OnboardingChecklist 
@@ -333,6 +339,7 @@ function App() {
           assignment={selectedAssignment}
           schedule={weeklySchedule}
           taskDurations={taskDurations}
+          subjectColors={subjectColors}
           onClose={() => setSelectedAssignment(null)}
         />
       )}
@@ -342,42 +349,49 @@ function App() {
 
 function OnboardingChecklist({ steps, progress, onDismiss }) {
   return (
-    <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-2xl p-4 mb-6">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">🚀</span>
-          <span className="font-medium">Complete your setup</span>
+    <div className="bg-white rounded-2xl p-5 mb-6 shadow-sm border border-gray-100">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
+            <span className="text-xl">🚀</span>
+          </div>
+          <div>
+            <h2 className="font-semibold text-gray-900">Complete your setup</h2>
+            <p className="text-sm text-gray-500">{progress}% complete</p>
+          </div>
         </div>
         <button 
           onClick={onDismiss}
-          className="text-gray-500 hover:text-gray-300 text-sm"
+          className="text-gray-400 hover:text-gray-600 p-1"
         >
-          Dismiss
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
       </div>
       
       {/* Progress bar */}
-      <div className="h-2 bg-white/10 rounded-full mb-4 overflow-hidden">
+      <div className="h-2 bg-gray-100 rounded-full mb-4 overflow-hidden">
         <div 
-          className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
+          className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500"
           style={{ width: `${progress}%` }}
         />
       </div>
       
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         {steps.map(step => (
           <div 
             key={step.id}
-            className={`flex items-center gap-2 text-sm ${
-              step.completed ? 'text-green-400' : 'text-gray-400'
+            className={`flex items-center gap-2 text-sm p-2 rounded-lg ${
+              step.completed ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'
             }`}
           >
             {step.completed ? (
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             ) : (
-              <div className="w-4 h-4 rounded-full border border-gray-500" />
+              <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
             )}
             {step.label}
           </div>
@@ -387,22 +401,34 @@ function OnboardingChecklist({ steps, progress, onDismiss }) {
   )
 }
 
-function StudyTimeModal({ assignment, schedule, taskDurations, onClose }) {
+function StudyTimeModal({ assignment, schedule, taskDurations, subjectColors, onClose }) {
   const duration = taskDurations[assignment.taskType] || taskDurations.default
   const dueDate = new Date(assignment.dueDate)
-  
-  // Get suggested study times
+  const colors = subjectColors[assignment.subject] || subjectColors['Other']
   const suggestions = getSuggestedTimes(assignment, schedule, taskDurations)
   
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-      <div className="bg-[#1a1a1e] rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden">
-        <div className="p-4 border-b border-white/10">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">When to work on this</h2>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden shadow-2xl">
+        <div className="p-5 border-b border-gray-100">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ backgroundColor: colors.bg }}
+              >
+                <svg className="w-5 h-5" style={{ color: colors.accent }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="font-semibold text-gray-900">When to work on this</h2>
+                <p className="text-sm text-gray-500">Based on your schedule</p>
+              </div>
+            </div>
             <button 
               onClick={onClose}
-              className="text-gray-400 hover:text-white p-1"
+              className="text-gray-400 hover:text-gray-600 p-1 -mr-1"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -411,36 +437,40 @@ function StudyTimeModal({ assignment, schedule, taskDurations, onClose }) {
           </div>
         </div>
         
-        <div className="p-4">
-          <div className="mb-4">
-            <h3 className="font-medium mb-1">{assignment.title}</h3>
-            <p className="text-sm text-gray-400">
-              Due {dueDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })} • 
-              Estimated {duration} mins
+        <div className="p-5">
+          <div className="mb-5 p-4 rounded-xl" style={{ backgroundColor: colors.bg }}>
+            <h3 className="font-medium text-gray-900 mb-1">{assignment.title}</h3>
+            <p className="text-sm" style={{ color: colors.text }}>
+              Due {dueDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })} • ~{duration} mins
             </p>
           </div>
           
           <div className="space-y-2">
-            <p className="text-sm text-gray-500 uppercase tracking-wide mb-2">Suggested times</p>
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">Suggested times</p>
             {suggestions.length > 0 ? (
               suggestions.map((slot, idx) => (
                 <button
                   key={idx}
-                  className="w-full text-left p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-colors"
+                  className="w-full text-left p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors group"
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-medium">{slot.day}</div>
-                      <div className="text-sm text-gray-400">{slot.time}</div>
+                      <div className="font-medium text-gray-900">{slot.day}</div>
+                      <div className="text-sm text-gray-500">{slot.time}</div>
                     </div>
-                    <div className="text-xs text-indigo-400 bg-indigo-500/20 px-2 py-1 rounded-full">
-                      {slot.label}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 bg-white px-2 py-1 rounded-full border border-gray-200">
+                        {slot.label}
+                      </span>
+                      <svg className="w-5 h-5 text-gray-300 group-hover:text-gray-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </div>
                   </div>
                 </button>
               ))
             ) : (
-              <p className="text-gray-500 text-sm">No suggestions available</p>
+              <p className="text-gray-500 text-sm text-center py-4">No suggestions available</p>
             )}
           </div>
         </div>
@@ -459,12 +489,10 @@ function getSuggestedTimes(assignment, schedule, taskDurations) {
   
   const suggestions = []
   
-  // Look at the next 5 days
   for (let i = 0; i < 5; i++) {
     const checkDate = new Date(now)
     checkDate.setDate(checkDate.getDate() + i)
     
-    // Don't suggest times after the due date
     if (checkDate > dueDate) break
     
     const dayName = days[checkDate.getDay()]
@@ -472,7 +500,6 @@ function getSuggestedTimes(assignment, schedule, taskDurations) {
     
     if (daySchedule && daySchedule.freeSlots) {
       for (const slot of daySchedule.freeSlots) {
-        // Check if slot is long enough
         const slotStart = parseInt(slot.start.split(':')[0]) * 60 + parseInt(slot.start.split(':')[1])
         const slotEnd = parseInt(slot.end.split(':')[0]) * 60 + parseInt(slot.end.split(':')[1])
         const slotDuration = slotEnd - slotStart
@@ -480,7 +507,7 @@ function getSuggestedTimes(assignment, schedule, taskDurations) {
         if (slotDuration >= duration) {
           suggestions.push({
             day: i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : dayNames[checkDate.getDay()],
-            time: `${slot.start} - ${slot.end}`,
+            time: `${slot.start} – ${slot.end}`,
             label: slot.label
           })
         }
@@ -498,19 +525,23 @@ function ListView({ groups, subjectColors, onToggleComplete, onSelectAssignment 
 
   if (!hasAssignments) {
     return (
-      <div className="text-center py-16">
-        <div className="text-5xl mb-4">🎉</div>
-        <h2 className="text-xl font-medium text-gray-300 mb-2">All caught up!</h2>
+      <div className="text-center py-20">
+        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span className="text-4xl">🎉</span>
+        </div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">All caught up!</h2>
         <p className="text-gray-500">No assignments due. Enjoy your free time.</p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {groups.overdue.length > 0 && (
         <Section 
-          title="⚠️ Overdue" 
+          title="Overdue" 
+          icon="⚠️"
+          iconBg="bg-red-100"
           assignments={groups.overdue} 
           urgency="overdue"
           subjectColors={subjectColors}
@@ -520,7 +551,9 @@ function ListView({ groups, subjectColors, onToggleComplete, onSelectAssignment 
       )}
       {groups.today.length > 0 && (
         <Section 
-          title="🔥 Due Today" 
+          title="Due today" 
+          icon="🔥"
+          iconBg="bg-orange-100"
           assignments={groups.today} 
           urgency="urgent"
           subjectColors={subjectColors}
@@ -530,7 +563,9 @@ function ListView({ groups, subjectColors, onToggleComplete, onSelectAssignment 
       )}
       {groups.thisWeek.length > 0 && (
         <Section 
-          title="📅 This Week" 
+          title="This week" 
+          icon="📅"
+          iconBg="bg-blue-100"
           assignments={groups.thisWeek} 
           urgency="upcoming"
           subjectColors={subjectColors}
@@ -540,7 +575,9 @@ function ListView({ groups, subjectColors, onToggleComplete, onSelectAssignment 
       )}
       {groups.later.length > 0 && (
         <Section 
-          title="📆 Later" 
+          title="Later" 
+          icon="📆"
+          iconBg="bg-gray-100"
           assignments={groups.later} 
           urgency=""
           subjectColors={subjectColors}
@@ -550,7 +587,9 @@ function ListView({ groups, subjectColors, onToggleComplete, onSelectAssignment 
       )}
       {groups.completed.length > 0 && (
         <Section 
-          title="✅ Completed" 
+          title="Completed" 
+          icon="✅"
+          iconBg="bg-green-100"
           assignments={groups.completed} 
           urgency="completed"
           subjectColors={subjectColors}
@@ -562,19 +601,23 @@ function ListView({ groups, subjectColors, onToggleComplete, onSelectAssignment 
   )
 }
 
-function Section({ title, assignments, urgency, subjectColors, onToggleComplete, onSelectAssignment }) {
+function Section({ title, icon, iconBg, assignments, urgency, subjectColors, onToggleComplete, onSelectAssignment }) {
   return (
     <div>
-      <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
-        {title}
-      </h2>
+      <div className="flex items-center gap-2 mb-3">
+        <div className={`w-8 h-8 ${iconBg} rounded-lg flex items-center justify-center`}>
+          <span className="text-sm">{icon}</span>
+        </div>
+        <h2 className="font-semibold text-gray-900">{title}</h2>
+        <span className="text-sm text-gray-400">({assignments.length})</span>
+      </div>
       <div className="space-y-2">
         {assignments.map(assignment => (
           <AssignmentCard 
             key={assignment.id} 
             assignment={assignment}
             urgency={urgency}
-            color={subjectColors[assignment.subject] || subjectColors['Other']}
+            colors={subjectColors[assignment.subject] || subjectColors['Other']}
             onToggleComplete={onToggleComplete}
             onSelectAssignment={onSelectAssignment}
           />
@@ -584,7 +627,7 @@ function Section({ title, assignments, urgency, subjectColors, onToggleComplete,
   )
 }
 
-function AssignmentCard({ assignment, urgency, color, onToggleComplete, onSelectAssignment }) {
+function AssignmentCard({ assignment, urgency, colors, onToggleComplete, onSelectAssignment }) {
   const [expanded, setExpanded] = useState(false)
   const dueDate = new Date(assignment.dueDate)
   
@@ -604,18 +647,9 @@ function AssignmentCard({ assignment, urgency, color, onToggleComplete, onSelect
     return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
   }
 
-  const urgencyStyles = {
-    overdue: 'border-l-red-500',
-    urgent: 'border-l-amber-500',
-    upcoming: 'border-l-indigo-500',
-    completed: 'border-l-green-500 opacity-60',
-    '': 'border-l-gray-600'
-  }
-
   return (
     <div 
-      className={`bg-[#1a1a1e] rounded-xl p-4 border-l-4 ${urgencyStyles[urgency]} 
-        hover:bg-[#222226] transition-colors
+      className={`bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow
         ${assignment.completed ? 'opacity-60' : ''}`}
     >
       <div className="flex items-start gap-3">
@@ -624,11 +658,13 @@ function AssignmentCard({ assignment, urgency, color, onToggleComplete, onSelect
             e.stopPropagation()
             onToggleComplete(assignment.id)
           }}
-          className={`mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors
-            ${assignment.completed ? 'bg-green-500 border-green-500' : 'border-gray-500 hover:border-gray-400'}`}
+          className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all
+            ${assignment.completed 
+              ? 'bg-green-500 border-green-500' 
+              : 'border-gray-300 hover:border-gray-400'}`}
         >
           {assignment.completed && (
-            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
             </svg>
           )}
@@ -639,24 +675,26 @@ function AssignmentCard({ assignment, urgency, color, onToggleComplete, onSelect
         >
           <div className="flex items-center gap-2 mb-1">
             <span 
-              className="w-2 h-2 rounded-full flex-shrink-0" 
-              style={{ backgroundColor: color }}
-            />
-            <span className="text-xs text-gray-400">{assignment.subject}</span>
+              className="text-xs font-medium px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: colors.bg, color: colors.text }}
+            >
+              {assignment.subject}
+            </span>
           </div>
-          <h3 className={`font-medium ${assignment.completed ? 'line-through text-gray-500' : ''}`}>
+          <h3 className={`font-medium text-gray-900 ${assignment.completed ? 'line-through text-gray-400' : ''}`}>
             {assignment.title}
           </h3>
           {expanded && assignment.description && (
-            <div>
-              <p className="text-sm text-gray-400 mt-2">{assignment.description}</p>
+            <div className="mt-3">
+              <p className="text-sm text-gray-500">{assignment.description}</p>
               {!assignment.completed && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
                     onSelectAssignment(assignment)
                   }}
-                  className="mt-3 text-sm text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                  className="mt-3 text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors"
+                  style={{ backgroundColor: colors.bg, color: colors.text }}
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -669,13 +707,13 @@ function AssignmentCard({ assignment, urgency, color, onToggleComplete, onSelect
         </div>
         <div className="text-right flex-shrink-0">
           <div className={`text-sm font-medium ${
-            urgency === 'overdue' ? 'text-red-400' : 
-            urgency === 'urgent' ? 'text-amber-400' : 
-            'text-gray-300'
+            urgency === 'overdue' ? 'text-red-500' : 
+            urgency === 'urgent' ? 'text-orange-500' : 
+            'text-gray-600'
           }`}>
             {formatDate(dueDate)}
           </div>
-          <div className="text-xs text-gray-500">{formatTime(dueDate)}</div>
+          <div className="text-xs text-gray-400">{formatTime(dueDate)}</div>
         </div>
       </div>
     </div>
@@ -696,13 +734,11 @@ function CalendarView({ assignments, subjectColors }) {
   
   const days = []
   
-  // Previous month padding
   for (let i = 0; i < startPadding; i++) {
     const day = new Date(year, month, -startPadding + i + 1)
     days.push({ date: day, otherMonth: true })
   }
   
-  // Current month
   for (let day = 1; day <= lastDay.getDate(); day++) {
     days.push({ date: new Date(year, month, day), otherMonth: false })
   }
@@ -717,28 +753,32 @@ function CalendarView({ assignments, subjectColors }) {
   }
 
   return (
-    <div>
+    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={() => setCurrentMonth(new Date(year, month - 1))}
-          className="px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 transition-colors"
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
         >
-          ←
+          <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
         </button>
-        <h2 className="text-lg font-medium">
+        <h2 className="text-lg font-semibold text-gray-900">
           {currentMonth.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
         </h2>
         <button
           onClick={() => setCurrentMonth(new Date(year, month + 1))}
-          className="px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 transition-colors"
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
         >
-          →
+          <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </button>
       </div>
       
       <div className="grid grid-cols-7 gap-1">
         {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-          <div key={day} className="text-center text-xs text-gray-500 py-2">
+          <div key={day} className="text-center text-xs font-medium text-gray-400 py-2">
             {day}
           </div>
         ))}
@@ -750,24 +790,29 @@ function CalendarView({ assignments, subjectColors }) {
           return (
             <div
               key={idx}
-              className={`min-h-[80px] rounded-lg p-1.5 ${
-                otherMonth ? 'bg-white/[0.02] opacity-40' : 'bg-[#1a1a1e]'
-              } ${isToday ? 'ring-2 ring-indigo-500' : ''}`}
+              className={`min-h-[90px] rounded-xl p-2 ${
+                otherMonth ? 'bg-gray-50 opacity-40' : 'bg-gray-50'
+              } ${isToday ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
             >
-              <div className={`text-xs mb-1 ${isToday ? 'text-indigo-400 font-bold' : 'text-gray-400'}`}>
+              <div className={`text-sm mb-1 ${
+                isToday ? 'text-blue-600 font-bold' : 'text-gray-500 font-medium'
+              }`}>
                 {date.getDate()}
               </div>
-              {dayAssignments.slice(0, 2).map(a => (
-                <div
-                  key={a.id}
-                  className="text-[10px] px-1 py-0.5 rounded mb-0.5 truncate"
-                  style={{ backgroundColor: subjectColors[a.subject] || subjectColors['Other'] }}
-                >
-                  {a.title}
-                </div>
-              ))}
+              {dayAssignments.slice(0, 2).map(a => {
+                const colors = subjectColors[a.subject] || subjectColors['Other']
+                return (
+                  <div
+                    key={a.id}
+                    className="text-[10px] px-1.5 py-0.5 rounded mb-0.5 truncate font-medium"
+                    style={{ backgroundColor: colors.bg, color: colors.text }}
+                  >
+                    {a.title}
+                  </div>
+                )
+              })}
               {dayAssignments.length > 2 && (
-                <div className="text-[10px] text-gray-500">+{dayAssignments.length - 2} more</div>
+                <div className="text-[10px] text-gray-400 font-medium">+{dayAssignments.length - 2} more</div>
               )}
             </div>
           )
