@@ -517,6 +517,7 @@ function SettingsModal({ onClose }) {
       </div>
     </div>
   )
+}
 
 function OnboardingChecklist({ steps, progress, onDismiss }) {
   return (
