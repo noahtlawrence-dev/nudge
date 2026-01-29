@@ -247,10 +247,7 @@ function App() {
             </h1>
             <div className="flex items-center gap-2">
             <button
-              onClick={() => {
-                console.log('Settings button clicked')
-                setShowSettings(true)
-              }}
+              onClick={() => setShowSettings(true)}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
               <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -359,18 +356,43 @@ function App() {
 
       {/* Settings Modal */}
       {showSettings && (
-        <>
-          {console.log('Rendering SettingsModal', showSettings)}
-          <SettingsModal onClose={() => setShowSettings(false)} />
-        </>
+        <SettingsModal onClose={() => setShowSettings(false)} />
       )}
     </div>
   )
 }
 
 function SettingsModal({ onClose }) {
-  const [darkMode, setDarkMode] = useState(false)
-  const [notifications, setNotifications] = useState(false)
+  const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true')
+  const [notifications, setNotifications] = useState(localStorage.getItem('notifications') === 'true')
+  
+  const toggleDarkMode = () => {
+    const newValue = !darkMode
+    setDarkMode(newValue)
+    localStorage.setItem('darkMode', newValue.toString())
+    // TODO: Actually implement dark mode CSS
+    alert('Dark mode coming soon! 🌙')
+  }
+  
+  const toggleNotifications = () => {
+    const newValue = !notifications
+    setNotifications(newValue)
+    localStorage.setItem('notifications', newValue.toString())
+    if (newValue) {
+      // Request notification permission
+      if ('Notification' in window) {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            new Notification('Nudge notifications enabled! 🔔')
+          }
+        })
+      } else {
+        alert('Notifications enabled! 🔔')
+      }
+    } else {
+      alert('Notifications disabled')
+    }
+  }
   
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
@@ -425,7 +447,10 @@ function SettingsModal({ onClose }) {
                 </svg>
               </div>
               
-              <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+              <button 
+                onClick={() => alert('Google Calendar integration coming soon! 📅')}
+                className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                     <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -458,7 +483,7 @@ function SettingsModal({ onClose }) {
                   <span className="font-medium text-gray-900">Dark mode</span>
                 </div>
                 <button
-                  onClick={() => setDarkMode(!darkMode)}
+                  onClick={toggleDarkMode}
                   className={`w-12 h-7 rounded-full transition-colors ${darkMode ? 'bg-indigo-500' : 'bg-gray-300'}`}
                 >
                   <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -475,7 +500,7 @@ function SettingsModal({ onClose }) {
                   <span className="font-medium text-gray-900">Notifications</span>
                 </div>
                 <button
-                  onClick={() => setNotifications(!notifications)}
+                  onClick={toggleNotifications}
                   className={`w-12 h-7 rounded-full transition-colors ${notifications ? 'bg-indigo-500' : 'bg-gray-300'}`}
                 >
                   <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${notifications ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -487,7 +512,10 @@ function SettingsModal({ onClose }) {
           {/* Schedule */}
           <div>
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Your Schedule</h3>
-            <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+            <button 
+              onClick={() => alert('Timetable editor coming soon! You can update your schedule here. 📅')}
+              className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
