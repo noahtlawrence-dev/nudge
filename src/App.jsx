@@ -247,7 +247,10 @@ function App() {
             </h1>
             <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowSettings(true)}
+              onClick={() => {
+                console.log('Settings button clicked')
+                setShowSettings(true)
+              }}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
               <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -356,7 +359,10 @@ function App() {
 
       {/* Settings Modal */}
       {showSettings && (
-        <SettingsModal onClose={() => setShowSettings(false)} />
+        <>
+          {console.log('Rendering SettingsModal', showSettings)}
+          <SettingsModal onClose={() => setShowSettings(false)} />
+        </>
       )}
     </div>
   )
