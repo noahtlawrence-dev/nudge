@@ -437,32 +437,130 @@ function App() {
 }
 
 function SettingsModal({ onClose }) {
-  const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true')
-  const [notificationsEnabled, setNotificationsEnabled] = useState(
-    typeof Notification !== 'undefined' && Notification.permission === 'granted'
-  )
-  
-  const toggleDarkMode = () => {
-    const newValue = !darkMode
-    setDarkMode(newValue)
+  // User profile state (loaded from localStorage or use defaults)
+  const [userProfile] = useState(() => {
+    const saved = localStorage.getItem('userProfile')
+    return saved ? JSON.parse(saved) : {
+      name: 'Noah',
+      email: 'noah.t@uni.bristol.ac.uk',
+      university: 'University of Bristol',
+      year: 'Year 3'
+    }
+  })
+
+  // Connected services state
+  const [connectedServices, setConnectedServices] = useState(() => {
+    const saved = localStorage.getItem('connectedServices')
+    return saved ? JSON.parse(saved) : {
+      blackboard: true,
+      googleCalendar: false,
+      emailForwarding: false
+    }
+  })
+
+  // Preferences state
+  const [preferences, setPreferences] = useState(() => {
+    const saved = localStorage.getItem('settingsPreferences')
+    return saved ? JSON.parse(saved) : {
+      darkMode: localStorage.getItem('darkMode') === 'true',
+      notificationsEnabled: typeof Notification !== 'undefined' && Notification.permission === 'granted',
+      dailyReminderTime: localStorage.getItem('studyReminder') || '09:00',
+      dueDateReminder: localStorage.getItem('dueReminder') || '24h',
+      preferredSession: localStorage.getItem('preferredSession') || 'morning'
+    }
+  })
+
+  // Message state
+  const [message, setMessage] = useState(null)
+
+  // Save connected services to localStorage
+  useEffect(() => {
+    localStorage.setItem('connectedServices', JSON.stringify(connectedServices))
+  }, [connectedServices])
+
+  // Save preferences to localStorage
+  useEffect(() => {
+    localStorage.setItem('settingsPreferences', JSON.stringify(preferences))
+  }, [preferences])
+
+  // Show message temporarily
+  const showMessage = useCallback((text) => {
+    setMessage(text)
+    setTimeout(() => setMessage(null), 2000)
+  }, [])
+
+  // Toggle dark mode
+  const toggleDarkMode = useCallback(() => {
+    const newValue = !preferences.darkMode
+    setPreferences(prev => ({ ...prev, darkMode: newValue }))
     localStorage.setItem('darkMode', newValue.toString())
-    // TODO: Actually implement dark mode CSS
-    alert('Dark mode coming soon! 🌙')
-  }
-  
-  const toggleNotifications = async () => {
-    if (!notificationsEnabled) {
+    if (newValue) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+    showMessage(newValue ? 'Dark mode enabled' : 'Dark mode disabled')
+  }, [preferences.darkMode, showMessage])
+
+  // Toggle notifications
+  const toggleNotifications = useCallback(async () => {
+    if (!preferences.notificationsEnabled) {
       const result = await requestPushPermission()
       if (result.granted) {
-        setNotificationsEnabled(true)
-        localStorage.setItem('notificationsEnabled', 'true')
+        setPreferences(prev => ({ ...prev, notificationsEnabled: true }))
+        showMessage('Notifications enabled!')
+      } else {
+        showMessage('Failed to enable notifications', 'error')
       }
     } else {
-      setNotificationsEnabled(false)
-      localStorage.setItem('notificationsEnabled', 'false')
+      setPreferences(prev => ({ ...prev, notificationsEnabled: false }))
+      showMessage('Notifications disabled')
     }
-  }
-  
+  }, [preferences.notificationsEnabled, showMessage])
+
+  // Test notification
+  const testNotification = useCallback(() => {
+    if (!('Notification' in window)) {
+      showMessage('Notifications not supported', 'error')
+      return
+    }
+    if (Notification.permission === 'granted') {
+      new Notification('Nudge Test', {
+        body: 'This is a test notification from Nudge!',
+        icon: '/logo.svg'
+      })
+      showMessage('Test notification sent!')
+    } else {
+      showMessage('Please enable notifications first', 'error')
+    }
+  }, [showMessage])
+
+  // Toggle service connection
+  const toggleService = useCallback((service) => {
+    setConnectedServices(prev => {
+      const newState = { ...prev, [service]: !prev[service] }
+      return newState
+    })
+    const isConnecting = !connectedServices[service]
+    const serviceNames = {
+      blackboard: 'Blackboard',
+      googleCalendar: 'Google Calendar',
+      emailForwarding: 'Email forwarding'
+    }
+    showMessage(
+      isConnecting 
+        ? `${serviceNames[service]} connected!` 
+        : `${serviceNames[service]} disconnected`
+    )
+  }, [connectedServices, showMessage])
+
+  // Update single preference
+  const updatePreference = useCallback((key, value) => {
+    setPreferences(prev => ({ ...prev, [key]: value }))
+    localStorage.setItem(key, value)
+    showMessage(`${key} updated`)
+  }, [showMessage])
+
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl">
@@ -481,17 +579,43 @@ function SettingsModal({ onClose }) {
         </div>
         
         <div className="p-5 space-y-6 overflow-y-auto">
+          {/* Messages */}
+          {message && (
+            <div className={`p-2 text-sm rounded-lg flex items-center gap-2 ${
+              message.includes('error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
+            }`}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              {message}
+            </div>
+          )}
+
           {/* Account Section */}
           <div>
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Account</h3>
             <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 mb-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg font-semibold">N</span>
+                  <span className="text-white text-lg font-semibold">{userProfile.name.charAt(0)}</span>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">Noah</p>
-                  <p className="text-sm text-gray-500">University of Bristol</p>
+                  <p className="font-medium text-gray-900">{userProfile.name}</p>
+                  <p className="text-sm text-gray-500">{userProfile.university}</p>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-sm">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-gray-600">{userProfile.email}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  <span className="text-gray-600">{userProfile.year}</span>
                 </div>
               </div>
             </div>
@@ -501,6 +625,7 @@ function SettingsModal({ onClose }) {
           <div>
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Connected Services</h3>
             <div className="space-y-2">
+              {/* Blackboard */}
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -508,40 +633,105 @@ function SettingsModal({ onClose }) {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900">Blackboard</p>
-                    <p className="text-sm text-green-600">Connected</p>
+                    <p className={`text-sm ${connectedServices.blackboard ? 'text-green-600' : 'text-gray-500'}`}>
+                      {connectedServices.blackboard ? 'Connected' : 'Not connected'}
+                    </p>
                   </div>
                 </div>
-                <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+                <div className="flex items-center gap-2">
+                  {connectedServices.blackboard && (
+                    <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                  <button
+                    onClick={() => toggleService('blackboard')}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                      connectedServices.blackboard 
+                        ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                        : 'bg-indigo-500 text-white hover:bg-indigo-600'
+                    }`}
+                  >
+                    {connectedServices.blackboard ? 'Disconnect' : 'Connect'}
+                  </button>
+                </div>
               </div>
               
-              <button 
-                onClick={() => alert('Google Calendar integration coming soon! 📅')}
-                className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
-              >
+              {/* Google Calendar */}
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                     <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <div className="text-left">
+                  <div>
                     <p className="font-medium text-gray-900">Google Calendar</p>
-                    <p className="text-sm text-gray-500">Sync your events</p>
+                    <p className={`text-sm ${connectedServices.googleCalendar ? 'text-green-600' : 'text-gray-500'}`}>
+                      {connectedServices.googleCalendar ? 'Connected' : 'Not connected'}
+                    </p>
                   </div>
                 </div>
-                <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
+                <div className="flex items-center gap-2">
+                  {connectedServices.googleCalendar && (
+                    <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                  <button
+                    onClick={() => toggleService('googleCalendar')}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                      connectedServices.googleCalendar 
+                        ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                        : 'bg-indigo-500 text-white hover:bg-indigo-600'
+                    }`}
+                  >
+                    {connectedServices.googleCalendar ? 'Disconnect' : 'Connect'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Email Forwarding */}
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Email Forwarding</p>
+                    <p className={`text-sm ${connectedServices.emailForwarding ? 'text-green-600' : 'text-gray-500'}`}>
+                      {connectedServices.emailForwarding ? 'Connected' : 'Not connected'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {connectedServices.emailForwarding && (
+                    <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                  <button
+                    onClick={() => toggleService('emailForwarding')}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                      connectedServices.emailForwarding 
+                        ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                        : 'bg-indigo-500 text-white hover:bg-indigo-600'
+                    }`}
+                  >
+                    {connectedServices.emailForwarding ? 'Disconnect' : 'Connect'}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Preferences */}
           <div>
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Preferences</h3>
-            <div className="space-y-2">
+            <div className="space-y-4">
+              {/* Dark Mode Toggle */}
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
@@ -553,12 +743,77 @@ function SettingsModal({ onClose }) {
                 </div>
                 <button
                   onClick={toggleDarkMode}
-                  className={`w-12 h-7 rounded-full transition-colors ${darkMode ? 'bg-indigo-500' : 'bg-gray-300'}`}
+                  className={`w-12 h-7 rounded-full transition-colors ${preferences.darkMode ? 'bg-indigo-500' : 'bg-gray-300'}`}
                 >
-                  <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-1'}`} />
+                  <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${preferences.darkMode ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
               
+              {/* Daily Study Reminder Time */}
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Daily study reminder
+                </label>
+                <div className="relative">
+                  <input
+                    type="time"
+                    value={preferences.dailyReminderTime}
+                    onChange={(e) => updatePreference('dailyReminderTime', e.target.value)}
+                    className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+              
+              {/* Due Date Reminder Options */}
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Remind me before due dates
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {['24h', '3days', '1week'].map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => updatePreference('dueDateReminder', option)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        preferences.dueDateReminder === option
+                          ? 'bg-indigo-500 text-white'
+                          : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                      }`}
+                    >
+                      {option === '24h' ? '24 hours' : option === '3days' ? '3 days' : '1 week'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Preferred Study Session */}
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  I prefer to study in the
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {['morning', 'afternoon', 'evening'].map((session) => (
+                    <button
+                      key={session}
+                      onClick={() => updatePreference('preferredSession', session)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        preferences.preferredSession === session
+                          ? 'bg-indigo-500 text-white'
+                          : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                      }`}
+                    >
+                      {session.charAt(0).toUpperCase() + session.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Notifications */}
+          <div>
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Notifications</h3>
+            <div className="space-y-3">
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
@@ -566,40 +821,64 @@ function SettingsModal({ onClose }) {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                   </div>
-                  <span className="font-medium text-gray-900">Notifications</span>
+                  <div>
+                    <span className="font-medium text-gray-900">Push notifications</span>
+                    <p className="text-xs text-gray-500">
+                      Status: {preferences.notificationsEnabled ? 'Enabled' : 'Disabled'}
+                    </p>
+                  </div>
                 </div>
                 <button
                   onClick={toggleNotifications}
-                  className={`w-12 h-7 rounded-full transition-colors ${notificationsEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
+                  className={`w-12 h-7 rounded-full transition-colors ${preferences.notificationsEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
                 >
-                  <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${notificationsEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                  <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${preferences.notificationsEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
+              
+              <button
+                onClick={testNotification}
+                className="w-full py-2 px-4 bg-indigo-500 text-white font-medium rounded-xl hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                Send Test Notification
+              </button>
             </div>
           </div>
 
           {/* Schedule */}
           <div>
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Your Schedule</h3>
-            <button 
-              onClick={() => alert('Timetable editor coming soon! You can update your schedule here. 📅')}
-              className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+            <div className="p-4 bg-gray-50 rounded-xl">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Class timetable</p>
+                    <p className="text-sm text-gray-500">Edit your weekly schedule</p>
+                  </div>
                 </div>
-                <div className="text-left">
-                  <p className="font-medium text-gray-900">Class timetable</p>
-                  <p className="text-sm text-gray-500">Edit your weekly schedule</p>
-                </div>
+                <button
+                  onClick={() => {
+                    const saved = localStorage.getItem('weeklySchedule')
+                    const schedule = saved ? JSON.parse(saved) : weeklySchedule
+                    alert(`Your schedule has ${Object.values(schedule).reduce((acc, day) => acc + day.classes.length, 0)} classes this week`)
+                  }}
+                  className="px-3 py-1.5 text-sm font-medium bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
+                >
+                  View Schedule
+                </button>
               </div>
-              <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+              <p className="text-xs text-gray-500">
+                Classes are loaded from your timetable. Contact support to update your schedule.
+              </p>
+            </div>
           </div>
 
           {/* About */}
