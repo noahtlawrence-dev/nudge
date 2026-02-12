@@ -1,4 +1,30 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+
+// Service Worker registration for push notifications
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(registration => {
+        console.log('Service Worker registered:', registration.scope)
+      })
+      .catch(error => {
+        console.log('Service Worker registration failed:', error)
+      })
+  }
+}
+
+// Request push notification permission and subscribe
+async function requestPushPermission() {
+  if (!('Notification' in window)) {
+    return { granted: false, reason: 'not-supported' }
+  }
+  
+  const permission = await Notification.requestPermission()
+  if (permission === 'granted') {
+    return { granted: true }
+  }
+  return { granted: false, reason: permission }
+}
 
 // Noah's weekly schedule - free time windows
 const weeklySchedule = {
@@ -184,8 +210,8 @@ const subjectColors = {
 const onboardingSteps = [
   { id: 'lms', label: 'Connect your LMS', completed: true },
   { id: 'schedule', label: 'Add class schedule', completed: true },
-  { id: 'preferences', label: 'Set study preferences', completed: false },
-  { id: 'notifications', label: 'Enable notifications', completed: false }
+  { id: 'preferences', label: 'Set study preferences', completed: localStorage.getItem('preferencesCompleted') === 'true' },
+  { id: 'notifications', label: 'Enable notifications', completed: Notification.permission === 'granted' }
 ]
 
 function App() {
@@ -195,6 +221,36 @@ function App() {
   const [showOnboarding, setShowOnboarding] = useState(true)
   const [selectedAssignment, setSelectedAssignment] = useState(null)
   const [showSettings, setShowSettings] = useState(false)
+  const [showPreferencesOnboarding, setShowPreferencesOnboarding] = useState(false)
+  const [showNotificationsOnboarding, setShowNotificationsOnboarding] = useState(false)
+  const [notificationPermission, setNotificationPermission] = useState(
+    typeof Notification !== 'undefined' ? Notification.permission : 'default'
+  )
+
+  // Register service worker on mount
+  useEffect(() => {
+    registerServiceWorker()
+    // Check current notification permission status
+    if (typeof Notification !== 'undefined') {
+      setNotificationPermission(Notification.permission)
+    }
+  }, [])
+
+  // Update onboarding step completion
+  const completePreferenceStep = useCallback(() => {
+    localStorage.setItem('preferencesCompleted', 'true')
+    setShowPreferencesOnboarding(false)
+    setShowNotificationsOnboarding(true)
+  }, [])
+
+  const completeNotificationStep = useCallback(async () => {
+    const result = await requestPushPermission()
+    if (result.granted) {
+      setNotificationPermission('granted')
+      localStorage.setItem('notificationsEnabled', 'true')
+    }
+    setShowNotificationsOnboarding(false)
+  }, [])
 
   const subjects = [...new Set(assignments.map(a => a.subject))]
   
@@ -325,6 +381,8 @@ function App() {
             steps={onboardingSteps}
             progress={onboardingProgress}
             onDismiss={() => setShowOnboarding(false)}
+            onOpenPreferences={() => setShowPreferencesOnboarding(true)}
+            onOpenNotifications={() => setShowNotificationsOnboarding(true)}
           />
         )}
 
@@ -358,13 +416,31 @@ function App() {
       {showSettings && (
         <SettingsModal onClose={() => setShowSettings(false)} />
       )}
+
+      {/* Preferences Onboarding Modal */}
+      {showPreferencesOnboarding && (
+        <PreferencesOnboardingModal 
+          onComplete={completePreferenceStep}
+          onClose={() => setShowPreferencesOnboarding(false)}
+        />
+      )}
+
+      {/* Notifications Onboarding Modal */}
+      {showNotificationsOnboarding && (
+        <NotificationsOnboardingModal 
+          onComplete={completeNotificationStep}
+          onClose={() => setShowNotificationsOnboarding(false)}
+        />
+      )}
     </div>
   )
 }
 
 function SettingsModal({ onClose }) {
   const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true')
-  const [notifications, setNotifications] = useState(localStorage.getItem('notifications') === 'true')
+  const [notificationsEnabled, setNotificationsEnabled] = useState(
+    typeof Notification !== 'undefined' && Notification.permission === 'granted'
+  )
   
   const toggleDarkMode = () => {
     const newValue = !darkMode
@@ -374,23 +450,16 @@ function SettingsModal({ onClose }) {
     alert('Dark mode coming soon! 🌙')
   }
   
-  const toggleNotifications = () => {
-    const newValue = !notifications
-    setNotifications(newValue)
-    localStorage.setItem('notifications', newValue.toString())
-    if (newValue) {
-      // Request notification permission
-      if ('Notification' in window) {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            new Notification('Nudge notifications enabled! 🔔')
-          }
-        })
-      } else {
-        alert('Notifications enabled! 🔔')
+  const toggleNotifications = async () => {
+    if (!notificationsEnabled) {
+      const result = await requestPushPermission()
+      if (result.granted) {
+        setNotificationsEnabled(true)
+        localStorage.setItem('notificationsEnabled', 'true')
       }
     } else {
-      alert('Notifications disabled')
+      setNotificationsEnabled(false)
+      localStorage.setItem('notificationsEnabled', 'false')
     }
   }
   
@@ -501,9 +570,9 @@ function SettingsModal({ onClose }) {
                 </div>
                 <button
                   onClick={toggleNotifications}
-                  className={`w-12 h-7 rounded-full transition-colors ${notifications ? 'bg-indigo-500' : 'bg-gray-300'}`}
+                  className={`w-12 h-7 rounded-full transition-colors ${notificationsEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
                 >
-                  <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${notifications ? 'translate-x-6' : 'translate-x-1'}`} />
+                  <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${notificationsEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
             </div>
@@ -553,7 +622,253 @@ function SettingsModal({ onClose }) {
   )
 }
 
-function OnboardingChecklist({ steps, progress, onDismiss }) {
+function PreferencesOnboardingModal({ onComplete, onClose }) {
+  const [studyReminder, setStudyReminder] = useState(localStorage.getItem('studyReminder') || '09:00')
+  const [dueReminder, setDueReminder] = useState(localStorage.getItem('dueReminder') || '24h')
+  const [preferredSession, setPreferredSession] = useState(localStorage.getItem('preferredSession') || 'morning')
+
+  const handleComplete = () => {
+    localStorage.setItem('studyReminder', studyReminder)
+    localStorage.setItem('dueReminder', dueReminder)
+    localStorage.setItem('preferredSession', preferredSession)
+    onComplete()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl">
+        <div className="p-5 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Study Preferences</h2>
+                <p className="text-sm text-gray-500">Customize your experience</p>
+              </div>
+            </div>
+            <button 
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 p-1 -mr-1"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <div className="p-5 space-y-5 overflow-y-auto">
+          {/* Study Reminder Time */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Daily study reminder
+            </label>
+            <div className="relative">
+              <input
+                type="time"
+                value={studyReminder}
+                onChange={(e) => setStudyReminder(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+              <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">When to send your daily study reminder</p>
+          </div>
+
+          {/* Due Date Reminder */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Remind me before due dates
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {['24h', '3days', '1week'].map((option) => (
+                <button
+                  key={option}
+                  onClick={() => setDueReminder(option)}
+                  className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    dueReminder === option
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {option === '24h' ? '24 hours' : option === '3days' ? '3 days' : '1 week'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Preferred Session */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              I prefer to study in the
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {['morning', 'afternoon', 'evening'].map((session) => (
+                <button
+                  key={session}
+                  onClick={() => setPreferredSession(session)}
+                  className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    preferredSession === session
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {session.charAt(0).toUpperCase() + session.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        <div className="p-5 border-t border-gray-100">
+          <button
+            onClick={handleComplete}
+            className="w-full py-3 bg-indigo-500 text-white font-medium rounded-xl hover:bg-indigo-600 transition-colors"
+          >
+            Save Preferences
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function NotificationsOnboardingModal({ onComplete, onClose }) {
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const handleEnableNotifications = async () => {
+    setLoading(true)
+    const result = await requestPushPermission()
+    setNotificationsEnabled(result.granted)
+    setLoading(false)
+    
+    if (result.granted) {
+      setTimeout(() => {
+        onComplete()
+      }, 1500)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl">
+        <div className="p-5 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Enable Notifications</h2>
+                <p className="text-sm text-gray-500">Never miss a deadline</p>
+              </div>
+            </div>
+            <button 
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 p-1 -mr-1"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <div className="p-5 space-y-5 overflow-y-auto">
+          {/* Notification Benefits */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h3 className="font-medium text-gray-900 mb-3">What you'll get:</h3>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-sm text-gray-600">Daily study reminders at your preferred time</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-sm text-gray-600">Deadline alerts before assignments are due</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-sm text-gray-600">Suggestions for when to work on tasks</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Current Status */}
+          {notificationsEnabled && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-medium text-green-800">Notifications enabled!</p>
+                  <p className="text-sm text-green-600">You're all set to receive reminders</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="p-5 border-t border-gray-100">
+          <button
+            onClick={handleEnableNotifications}
+            disabled={loading || notificationsEnabled}
+            className={`w-full py-3 font-medium rounded-xl transition-all flex items-center justify-center gap-2 ${
+              notificationsEnabled
+                ? 'bg-green-500 text-white'
+                : 'bg-indigo-500 text-white hover:bg-indigo-600'
+            }`}
+          >
+            {loading ? (
+              <>
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Enabling...
+              </>
+            ) : notificationsEnabled ? (
+              <>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Enabled!
+              </>
+            ) : (
+              'Enable Notifications'
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function OnboardingChecklist({ steps, progress, onDismiss, onOpenPreferences, onOpenNotifications }) {
   return (
     <div className="bg-white rounded-2xl p-5 mb-6 shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-4">
@@ -585,23 +900,44 @@ function OnboardingChecklist({ steps, progress, onDismiss }) {
       </div>
       
       <div className="grid grid-cols-2 gap-3">
-        {steps.map(step => (
-          <div 
-            key={step.id}
-            className={`flex items-center gap-2 text-sm p-2 rounded-lg ${
-              step.completed ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'
-            }`}
-          >
-            {step.completed ? (
-              <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            ) : (
-              <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
-            )}
-            {step.label}
-          </div>
-        ))}
+        {steps.map(step => {
+          const isClickable = (step.id === 'preferences' && !step.completed) || (step.id === 'notifications' && !step.completed)
+          return (
+            <button
+              key={step.id}
+              onClick={() => {
+                if (step.id === 'preferences' && !step.completed) onOpenPreferences()
+                if (step.id === 'notifications' && !step.completed) onOpenNotifications()
+              }}
+              disabled={step.completed}
+              className={`flex items-center gap-2 text-sm p-2 rounded-lg transition-all ${
+                step.completed 
+                  ? 'bg-green-50 text-green-700' 
+                  : isClickable 
+                    ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 cursor-pointer' 
+                    : 'bg-gray-50 text-gray-500'
+              }`}
+            >
+              {step.completed ? (
+                <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              ) : isClickable ? (
+                <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              ) : (
+                <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
+              )}
+              {step.label}
+              {isClickable && (
+                <svg className="w-4 h-4 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              )}
+            </button>
+          )
+        })}
       </div>
     </div>
   )
