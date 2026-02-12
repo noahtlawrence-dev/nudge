@@ -234,6 +234,13 @@ function App() {
     if (typeof Notification !== 'undefined') {
       setNotificationPermission(Notification.permission)
     }
+    
+    // Initialize dark mode from localStorage
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true'
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark')
+      setPreferences(prev => ({ ...prev, darkMode: true }))
+    }
   }, [])
 
   // Update onboarding step completion
@@ -292,32 +299,32 @@ function App() {
   const onboardingProgress = Math.round((completedSteps / totalSteps) * 100)
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[var(--color-bg)] transition-colors duration-300">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+      <header className="sticky top-0 z-10 bg-[var(--color-bg-card)] border-b border-[var(--color-border)] shadow-sm transition-colors duration-300">
         <div className="max-w-3xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-3">
+            <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-3">
               <img src="/logo.svg" alt="Nudge" className="w-10 h-10" />
               Nudge
             </h1>
             <div className="flex items-center gap-2">
             <button
               onClick={() => setShowSettings(true)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-[var(--color-bg-gray)] rounded-full transition-colors"
             >
-              <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-6 h-6 text-[var(--color-text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </button>
-            <div className="flex bg-gray-100 rounded-full p-1">
+            <div className="flex bg-[var(--color-bg-gray)] rounded-full p-1 transition-colors duration-300">
               <button
                 onClick={() => setView('list')}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                   view === 'list' 
-                    ? 'bg-white text-gray-900 shadow-sm' 
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-[var(--color-bg-card)] text-[var(--color-text-primary)] shadow-sm' 
+                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                 }`}
               >
                 List
@@ -326,8 +333,8 @@ function App() {
                 onClick={() => setView('calendar')}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                   view === 'calendar' 
-                    ? 'bg-white text-gray-900 shadow-sm' 
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-[var(--color-bg-card)] text-[var(--color-text-primary)] shadow-sm' 
+                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                 }`}
               >
                 Calendar
@@ -342,8 +349,8 @@ function App() {
               onClick={() => setFilter('all')}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
                 filter === 'all'
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                  ? 'bg-[var(--color-text-primary)] text-[var(--color-bg)]'
+                  : 'bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-gray)] border border-[var(--color-border)]'
               }`}
             >
               All tasks
@@ -563,10 +570,10 @@ function SettingsModal({ onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl">
-        <div className="p-5 border-b border-gray-100">
+      <div className="bg-[var(--color-bg-modal)] rounded-2xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl transition-colors duration-300">
+        <div className="p-5 border-b border-[var(--color-border)]">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">Settings</h2>
+            <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Settings</h2>
             <button 
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 p-1 -mr-1"
@@ -593,29 +600,29 @@ function SettingsModal({ onClose }) {
 
           {/* Account Section */}
           <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Account</h3>
-            <div className="bg-gray-50 rounded-xl p-4">
+            <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Account</h3>
+            <div className="bg-[var(--color-bg-gray)] rounded-xl p-4 transition-colors duration-300">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-lg font-semibold">{userProfile.name.charAt(0)}</span>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">{userProfile.name}</p>
-                  <p className="text-sm text-gray-500">{userProfile.university}</p>
+                  <p className="font-medium text-[var(--color-text-primary)]">{userProfile.name}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{userProfile.university}</p>
                 </div>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  <span className="text-gray-600">{userProfile.email}</span>
+                  <span className="text-[var(--color-text-secondary)]">{userProfile.email}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
-                  <span className="text-gray-600">{userProfile.year}</span>
+                  <span className="text-[var(--color-text-secondary)]">{userProfile.year}</span>
                 </div>
               </div>
             </div>
@@ -623,17 +630,17 @@ function SettingsModal({ onClose }) {
 
           {/* Connected Services */}
           <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Connected Services</h3>
+            <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Connected Services</h3>
             <div className="space-y-2">
               {/* Blackboard */}
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <div className="flex items-center justify-between p-4 bg-[var(--color-bg-gray)] rounded-xl transition-colors duration-300">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                     <span className="text-orange-600 font-bold text-sm">Bb</span>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">Blackboard</p>
-                    <p className={`text-sm ${connectedServices.blackboard ? 'text-green-600' : 'text-gray-500'}`}>
+                    <p className="font-medium text-[var(--color-text-primary)]">Blackboard</p>
+                    <p className={`text-sm ${connectedServices.blackboard ? 'text-green-500' : 'text-[var(--color-text-secondary)]'}`}>
                       {connectedServices.blackboard ? 'Connected' : 'Not connected'}
                     </p>
                   </div>
@@ -648,7 +655,7 @@ function SettingsModal({ onClose }) {
                     onClick={() => toggleService('blackboard')}
                     className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                       connectedServices.blackboard 
-                        ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                        ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20 dark:bg-red-500/20' 
                         : 'bg-indigo-500 text-white hover:bg-indigo-600'
                     }`}
                   >
@@ -658,7 +665,7 @@ function SettingsModal({ onClose }) {
               </div>
               
               {/* Google Calendar */}
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <div className="flex items-center justify-between p-4 bg-[var(--color-bg-gray)] rounded-xl transition-colors duration-300">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                     <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -666,8 +673,8 @@ function SettingsModal({ onClose }) {
                     </svg>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">Google Calendar</p>
-                    <p className={`text-sm ${connectedServices.googleCalendar ? 'text-green-600' : 'text-gray-500'}`}>
+                    <p className="font-medium text-[var(--color-text-primary)]">Google Calendar</p>
+                    <p className={`text-sm ${connectedServices.googleCalendar ? 'text-green-500' : 'text-[var(--color-text-secondary)]'}`}>
                       {connectedServices.googleCalendar ? 'Connected' : 'Not connected'}
                     </p>
                   </div>
@@ -682,7 +689,7 @@ function SettingsModal({ onClose }) {
                     onClick={() => toggleService('googleCalendar')}
                     className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                       connectedServices.googleCalendar 
-                        ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                        ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20 dark:bg-red-500/20' 
                         : 'bg-indigo-500 text-white hover:bg-indigo-600'
                     }`}
                   >
@@ -692,7 +699,7 @@ function SettingsModal({ onClose }) {
               </div>
 
               {/* Email Forwarding */}
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <div className="flex items-center justify-between p-4 bg-[var(--color-bg-gray)] rounded-xl transition-colors duration-300">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                     <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -700,8 +707,8 @@ function SettingsModal({ onClose }) {
                     </svg>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">Email Forwarding</p>
-                    <p className={`text-sm ${connectedServices.emailForwarding ? 'text-green-600' : 'text-gray-500'}`}>
+                    <p className="font-medium text-[var(--color-text-primary)]">Email Forwarding</p>
+                    <p className={`text-sm ${connectedServices.emailForwarding ? 'text-green-500' : 'text-[var(--color-text-secondary)]'}`}>
                       {connectedServices.emailForwarding ? 'Connected' : 'Not connected'}
                     </p>
                   </div>
@@ -716,7 +723,7 @@ function SettingsModal({ onClose }) {
                     onClick={() => toggleService('emailForwarding')}
                     className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                       connectedServices.emailForwarding 
-                        ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                        ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20 dark:bg-red-500/20' 
                         : 'bg-indigo-500 text-white hover:bg-indigo-600'
                     }`}
                   >
@@ -729,29 +736,29 @@ function SettingsModal({ onClose }) {
 
           {/* Preferences */}
           <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Preferences</h3>
+            <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Preferences</h3>
             <div className="space-y-4">
               {/* Dark Mode Toggle */}
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <div className="flex items-center justify-between p-4 bg-[var(--color-bg-gray)] rounded-xl transition-colors duration-300">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="w-10 h-10 bg-[var(--color-bg-input)] rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-[var(--color-text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>
                   </div>
-                  <span className="font-medium text-gray-900">Dark mode</span>
+                  <span className="font-medium text-[var(--color-text-primary)]">Dark mode</span>
                 </div>
                 <button
                   onClick={toggleDarkMode}
-                  className={`w-12 h-7 rounded-full transition-colors ${preferences.darkMode ? 'bg-indigo-500' : 'bg-gray-300'}`}
+                  className={`w-12 h-7 rounded-full transition-colors ${preferences.darkMode ? 'bg-indigo-500' : 'bg-gray-400'}`}
                 >
                   <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${preferences.darkMode ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
               
               {/* Daily Study Reminder Time */}
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="p-4 bg-[var(--color-bg-gray)] rounded-xl transition-colors duration-300">
+                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                   Daily study reminder
                 </label>
                 <div className="relative">
@@ -759,14 +766,14 @@ function SettingsModal({ onClose }) {
                     type="time"
                     value={preferences.dailyReminderTime}
                     onChange={(e) => updatePreference('dailyReminderTime', e.target.value)}
-                    className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-4 py-2 bg-[var(--color-bg-card)] border border-[var(--color-border-input)] rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-[var(--color-text-primary)]"
                   />
                 </div>
               </div>
               
               {/* Due Date Reminder Options */}
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="p-4 bg-[var(--color-bg-gray)] rounded-xl transition-colors duration-300">
+                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                   Remind me before due dates
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -777,7 +784,7 @@ function SettingsModal({ onClose }) {
                       className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                         preferences.dueDateReminder === option
                           ? 'bg-indigo-500 text-white'
-                          : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                          : 'bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-input)] border border-[var(--color-border)]'
                       }`}
                     >
                       {option === '24h' ? '24 hours' : option === '3days' ? '3 days' : '1 week'}
@@ -787,8 +794,8 @@ function SettingsModal({ onClose }) {
               </div>
               
               {/* Preferred Study Session */}
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="p-4 bg-[var(--color-bg-gray)] rounded-xl transition-colors duration-300">
+                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                   I prefer to study in the
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -799,7 +806,7 @@ function SettingsModal({ onClose }) {
                       className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                         preferences.preferredSession === session
                           ? 'bg-indigo-500 text-white'
-                          : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                          : 'bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-input)] border border-[var(--color-border)]'
                       }`}
                     >
                       {session.charAt(0).toUpperCase() + session.slice(1)}
@@ -812,25 +819,25 @@ function SettingsModal({ onClose }) {
 
           {/* Notifications */}
           <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Notifications</h3>
+            <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Notifications</h3>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <div className="flex items-center justify-between p-4 bg-[var(--color-bg-gray)] rounded-xl transition-colors duration-300">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                   </div>
                   <div>
-                    <span className="font-medium text-gray-900">Push notifications</span>
-                    <p className="text-xs text-gray-500">
+                    <span className="font-medium text-[var(--color-text-primary)]">Push notifications</span>
+                    <p className="text-xs text-[var(--color-text-secondary)]">
                       Status: {preferences.notificationsEnabled ? 'Enabled' : 'Disabled'}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={toggleNotifications}
-                  className={`w-12 h-7 rounded-full transition-colors ${preferences.notificationsEnabled ? 'bg-indigo-500' : 'bg-gray-300'}`}
+                  className={`w-12 h-7 rounded-full transition-colors ${preferences.notificationsEnabled ? 'bg-indigo-500' : 'bg-gray-400'}`}
                 >
                   <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${preferences.notificationsEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
@@ -850,18 +857,18 @@ function SettingsModal({ onClose }) {
 
           {/* Schedule */}
           <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Your Schedule</h3>
-            <div className="p-4 bg-gray-50 rounded-xl">
+            <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Your Schedule</h3>
+            <div className="p-4 bg-[var(--color-bg-gray)] rounded-xl transition-colors duration-300">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">Class timetable</p>
-                    <p className="text-sm text-gray-500">Edit your weekly schedule</p>
+                    <p className="font-medium text-[var(--color-text-primary)]">Class timetable</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Edit your weekly schedule</p>
                   </div>
                 </div>
                 <button
@@ -875,7 +882,7 @@ function SettingsModal({ onClose }) {
                   View Schedule
                 </button>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-[var(--color-text-muted)]">
                 Classes are loaded from your timetable. Contact support to update your schedule.
               </p>
             </div>
@@ -883,16 +890,16 @@ function SettingsModal({ onClose }) {
 
           {/* About */}
           <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">About</h3>
-            <div className="p-4 bg-gray-50 rounded-xl">
+            <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">About</h3>
+            <div className="p-4 bg-[var(--color-bg-gray)] rounded-xl transition-colors duration-300">
               <div className="flex items-center gap-3 mb-3">
                 <img src="/logo.svg" alt="Nudge" className="w-10 h-10" />
                 <div>
-                  <p className="font-semibold text-gray-900">Nudge</p>
-                  <p className="text-sm text-gray-500">Version 1.0.0</p>
+                  <p className="font-semibold text-[var(--color-text-primary)]">Nudge</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Version 1.0.0</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-500">Your assignments, clear. Built with 💜 for students.</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">Your assignments, clear. Built with 💜 for students.</p>
             </div>
           </div>
         </div>
@@ -915,23 +922,23 @@ function PreferencesOnboardingModal({ onComplete, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl">
-        <div className="p-5 border-b border-gray-100">
+      <div className="bg-[var(--color-bg-modal)] rounded-2xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl transition-colors duration-300">
+        <div className="p-5 border-b border-[var(--color-border)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
-                <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Study Preferences</h2>
-                <p className="text-sm text-gray-500">Customize your experience</p>
+                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Study Preferences</h2>
+                <p className="text-sm text-[var(--color-text-secondary)]">Customize your experience</p>
               </div>
             </div>
             <button 
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 p-1 -mr-1"
+              className="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] p-1 -mr-1"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -943,7 +950,7 @@ function PreferencesOnboardingModal({ onComplete, onClose }) {
         <div className="p-5 space-y-5 overflow-y-auto">
           {/* Study Reminder Time */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
               Daily study reminder
             </label>
             <div className="relative">
@@ -951,18 +958,18 @@ function PreferencesOnboardingModal({ onComplete, onClose }) {
                 type="time"
                 value={studyReminder}
                 onChange={(e) => setStudyReminder(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-4 py-3 bg-[var(--color-bg-input)] border border-[var(--color-border)] rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-[var(--color-text-primary)]"
               />
-              <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <p className="text-xs text-gray-500 mt-1">When to send your daily study reminder</p>
+            <p className="text-xs text-[var(--color-text-muted)] mt-1">When to send your daily study reminder</p>
           </div>
 
           {/* Due Date Reminder */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
               Remind me before due dates
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -973,7 +980,7 @@ function PreferencesOnboardingModal({ onComplete, onClose }) {
                   className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                     dueReminder === option
                       ? 'bg-indigo-500 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-[var(--color-bg-gray)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-input)]'
                   }`}
                 >
                   {option === '24h' ? '24 hours' : option === '3days' ? '3 days' : '1 week'}
@@ -984,7 +991,7 @@ function PreferencesOnboardingModal({ onComplete, onClose }) {
 
           {/* Preferred Session */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
               I prefer to study in the
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -995,7 +1002,7 @@ function PreferencesOnboardingModal({ onComplete, onClose }) {
                   className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                     preferredSession === session
                       ? 'bg-indigo-500 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-[var(--color-bg-gray)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-input)]'
                   }`}
                 >
                   {session.charAt(0).toUpperCase() + session.slice(1)}
@@ -1005,7 +1012,7 @@ function PreferencesOnboardingModal({ onComplete, onClose }) {
           </div>
         </div>
         
-        <div className="p-5 border-t border-gray-100">
+        <div className="p-5 border-t border-[var(--color-border)]">
           <button
             onClick={handleComplete}
             className="w-full py-3 bg-indigo-500 text-white font-medium rounded-xl hover:bg-indigo-600 transition-colors"
@@ -1037,23 +1044,23 @@ function NotificationsOnboardingModal({ onComplete, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl">
-        <div className="p-5 border-b border-gray-100">
+      <div className="bg-[var(--color-bg-modal)] rounded-2xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl transition-colors duration-300">
+        <div className="p-5 border-b border-[var(--color-border)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-                <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center">
+                <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Enable Notifications</h2>
-                <p className="text-sm text-gray-500">Never miss a deadline</p>
+                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Enable Notifications</h2>
+                <p className="text-sm text-[var(--color-text-secondary)]">Never miss a deadline</p>
               </div>
             </div>
             <button 
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 p-1 -mr-1"
+              className="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] p-1 -mr-1"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1064,55 +1071,55 @@ function NotificationsOnboardingModal({ onComplete, onClose }) {
         
         <div className="p-5 space-y-5 overflow-y-auto">
           {/* Notification Benefits */}
-          <div className="bg-gray-50 rounded-xl p-4">
-            <h3 className="font-medium text-gray-900 mb-3">What you'll get:</h3>
+          <div className="bg-[var(--color-bg-gray)] rounded-xl p-4 transition-colors duration-300">
+            <h3 className="font-medium text-[var(--color-text-primary)] mb-3">What you'll get:</h3>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-6 h-6 bg-green-500/10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="text-sm text-gray-600">Daily study reminders at your preferred time</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">Daily study reminders at your preferred time</span>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-6 h-6 bg-green-500/10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="text-sm text-gray-600">Deadline alerts before assignments are due</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">Deadline alerts before assignments are due</span>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-6 h-6 bg-green-500/10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="text-sm text-gray-600">Suggestions for when to work on tasks</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">Suggestions for when to work on tasks</span>
               </div>
             </div>
           </div>
 
           {/* Current Status */}
           {notificationsEnabled && (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+            <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
                 <div>
-                  <p className="font-medium text-green-800">Notifications enabled!</p>
-                  <p className="text-sm text-green-600">You're all set to receive reminders</p>
+                  <p className="font-medium text-green-500">Notifications enabled!</p>
+                  <p className="text-sm text-green-500/80">You're all set to receive reminders</p>
                 </div>
               </div>
             </div>
           )}
         </div>
         
-        <div className="p-5 border-t border-gray-100">
+        <div className="p-5 border-t border-[var(--color-border)]">
           <button
             onClick={handleEnableNotifications}
             disabled={loading || notificationsEnabled}
@@ -1149,20 +1156,20 @@ function NotificationsOnboardingModal({ onComplete, onClose }) {
 
 function OnboardingChecklist({ steps, progress, onDismiss, onOpenPreferences, onOpenNotifications }) {
   return (
-    <div className="bg-white rounded-2xl p-5 mb-6 shadow-sm border border-gray-100">
+    <div className="bg-[var(--color-bg-card)] rounded-2xl p-5 mb-6 shadow-sm border border-[var(--color-border)] transition-colors duration-300">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-blue-500/10 rounded-full flex items-center justify-center">
             <span className="text-xl">🚀</span>
           </div>
           <div>
-            <h2 className="font-semibold text-gray-900">Complete your setup</h2>
-            <p className="text-sm text-gray-500">{progress}% complete</p>
+            <h2 className="font-semibold text-[var(--color-text-primary)]">Complete your setup</h2>
+            <p className="text-sm text-[var(--color-text-secondary)]">{progress}% complete</p>
           </div>
         </div>
         <button 
           onClick={onDismiss}
-          className="text-gray-400 hover:text-gray-600 p-1"
+          className="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] p-1"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1171,7 +1178,7 @@ function OnboardingChecklist({ steps, progress, onDismiss, onOpenPreferences, on
       </div>
       
       {/* Progress bar */}
-      <div className="h-2 bg-gray-100 rounded-full mb-4 overflow-hidden">
+      <div className="h-2 bg-[var(--color-bg-gray)] rounded-full mb-4 overflow-hidden transition-colors duration-300">
         <div 
           className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500"
           style={{ width: `${progress}%` }}
@@ -1191,10 +1198,10 @@ function OnboardingChecklist({ steps, progress, onDismiss, onOpenPreferences, on
               disabled={step.completed}
               className={`flex items-center gap-2 text-sm p-2 rounded-lg transition-all ${
                 step.completed 
-                  ? 'bg-green-50 text-green-700' 
+                  ? 'bg-green-500/10 text-green-500' 
                   : isClickable 
-                    ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 cursor-pointer' 
-                    : 'bg-gray-50 text-gray-500'
+                    ? 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 cursor-pointer' 
+                    : 'bg-[var(--color-bg-gray)] text-[var(--color-text-secondary)]'
               }`}
             >
               {step.completed ? (
@@ -1206,11 +1213,11 @@ function OnboardingChecklist({ steps, progress, onDismiss, onOpenPreferences, on
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
               ) : (
-                <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
+                <div className="w-5 h-5 rounded-full border-2 border-[var(--color-border-input)]" />
               )}
               {step.label}
               {isClickable && (
-                <svg className="w-4 h-4 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 ml-auto text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               )}
@@ -1230,8 +1237,8 @@ function StudyTimeModal({ assignment, schedule, taskDurations, subjectColors, on
   
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden shadow-2xl">
-        <div className="p-5 border-b border-gray-100">
+      <div className="bg-[var(--color-bg-modal)] rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden shadow-2xl transition-colors duration-300">
+        <div className="p-5 border-b border-[var(--color-border)]">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <div 
@@ -1243,13 +1250,13 @@ function StudyTimeModal({ assignment, schedule, taskDurations, subjectColors, on
                 </svg>
               </div>
               <div>
-                <h2 className="font-semibold text-gray-900">When to work on this</h2>
-                <p className="text-sm text-gray-500">Based on your schedule</p>
+                <h2 className="font-semibold text-[var(--color-text-primary)]">When to work on this</h2>
+                <p className="text-sm text-[var(--color-text-secondary)]">Based on your schedule</p>
               </div>
             </div>
             <button 
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 p-1 -mr-1"
+              className="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] p-1 -mr-1"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1260,30 +1267,30 @@ function StudyTimeModal({ assignment, schedule, taskDurations, subjectColors, on
         
         <div className="p-5">
           <div className="mb-5 p-4 rounded-xl" style={{ backgroundColor: colors.bg }}>
-            <h3 className="font-medium text-gray-900 mb-1">{assignment.title}</h3>
+            <h3 className="font-medium text-[var(--color-text-primary)] mb-1">{assignment.title}</h3>
             <p className="text-sm" style={{ color: colors.text }}>
               Due {dueDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })} • ~{duration} mins
             </p>
           </div>
           
           <div className="space-y-2">
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">Suggested times</p>
+            <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Suggested times</p>
             {suggestions.length > 0 ? (
               suggestions.map((slot, idx) => (
                 <button
                   key={idx}
-                  className="w-full text-left p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors group"
+                  className="w-full text-left p-4 bg-[var(--color-bg-gray)] hover:bg-[var(--color-bg-input)] rounded-xl transition-colors group"
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-medium text-gray-900">{slot.day}</div>
-                      <div className="text-sm text-gray-500">{slot.time}</div>
+                      <div className="font-medium text-[var(--color-text-primary)]">{slot.day}</div>
+                      <div className="text-sm text-[var(--color-text-secondary)]">{slot.time}</div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 bg-white px-2 py-1 rounded-full border border-gray-200">
+                      <span className="text-xs text-[var(--color-text-muted)] bg-[var(--color-bg-card)] px-2 py-1 rounded-full border border-[var(--color-border)]">
                         {slot.label}
                       </span>
-                      <svg className="w-5 h-5 text-gray-300 group-hover:text-gray-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-5 h-5 text-[var(--color-text-muted)] group-hover:text-[var(--color-text-secondary)] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
@@ -1291,7 +1298,7 @@ function StudyTimeModal({ assignment, schedule, taskDurations, subjectColors, on
                 </button>
               ))
             ) : (
-              <p className="text-gray-500 text-sm text-center py-4">No suggestions available</p>
+              <p className="text-[var(--color-text-secondary)] text-sm text-center py-4">No suggestions available</p>
             )}
           </div>
         </div>
@@ -1347,11 +1354,11 @@ function ListView({ groups, subjectColors, onToggleComplete, onSelectAssignment 
   if (!hasAssignments) {
     return (
       <div className="text-center py-20">
-        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
           <span className="text-4xl">🎉</span>
         </div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">All caught up!</h2>
-        <p className="text-gray-500">No assignments due. Enjoy your free time.</p>
+        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">All caught up!</h2>
+        <p className="text-[var(--color-text-secondary)]">No assignments due. Enjoy your free time.</p>
       </div>
     )
   }
@@ -1362,7 +1369,7 @@ function ListView({ groups, subjectColors, onToggleComplete, onSelectAssignment 
         <Section 
           title="Overdue" 
           icon="⚠️"
-          iconBg="bg-red-100"
+          iconBg="bg-red-500/10"
           assignments={groups.overdue} 
           urgency="overdue"
           subjectColors={subjectColors}
@@ -1374,7 +1381,7 @@ function ListView({ groups, subjectColors, onToggleComplete, onSelectAssignment 
         <Section 
           title="Due today" 
           icon="🔥"
-          iconBg="bg-orange-100"
+          iconBg="bg-orange-500/10"
           assignments={groups.today} 
           urgency="urgent"
           subjectColors={subjectColors}
@@ -1386,7 +1393,7 @@ function ListView({ groups, subjectColors, onToggleComplete, onSelectAssignment 
         <Section 
           title="This week" 
           icon="📅"
-          iconBg="bg-blue-100"
+          iconBg="bg-blue-500/10"
           assignments={groups.thisWeek} 
           urgency="upcoming"
           subjectColors={subjectColors}
@@ -1398,7 +1405,7 @@ function ListView({ groups, subjectColors, onToggleComplete, onSelectAssignment 
         <Section 
           title="Later" 
           icon="📆"
-          iconBg="bg-gray-100"
+          iconBg="bg-[var(--color-bg-gray)]"
           assignments={groups.later} 
           urgency=""
           subjectColors={subjectColors}
@@ -1410,7 +1417,7 @@ function ListView({ groups, subjectColors, onToggleComplete, onSelectAssignment 
         <Section 
           title="Completed" 
           icon="✅"
-          iconBg="bg-green-100"
+          iconBg="bg-green-500/10"
           assignments={groups.completed} 
           urgency="completed"
           subjectColors={subjectColors}
@@ -1429,8 +1436,8 @@ function Section({ title, icon, iconBg, assignments, urgency, subjectColors, onT
         <div className={`w-8 h-8 ${iconBg} rounded-lg flex items-center justify-center`}>
           <span className="text-sm">{icon}</span>
         </div>
-        <h2 className="font-semibold text-gray-900">{title}</h2>
-        <span className="text-sm text-gray-400">({assignments.length})</span>
+        <h2 className="font-semibold text-[var(--color-text-primary)]">{title}</h2>
+        <span className="text-sm text-[var(--color-text-muted)]">({assignments.length})</span>
       </div>
       <div className="space-y-2">
         {assignments.map(assignment => (
@@ -1470,7 +1477,7 @@ function AssignmentCard({ assignment, urgency, colors, onToggleComplete, onSelec
 
   return (
     <div 
-      className={`bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow
+      className={`bg-[var(--color-bg-card)] rounded-xl p-4 shadow-sm border border-[var(--color-border)] hover:shadow-md transition-all duration-300
         ${assignment.completed ? 'opacity-60' : ''}`}
     >
       <div className="flex items-start gap-3">
@@ -1482,7 +1489,7 @@ function AssignmentCard({ assignment, urgency, colors, onToggleComplete, onSelec
           className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all
             ${assignment.completed 
               ? 'bg-green-500 border-green-500' 
-              : 'border-gray-300 hover:border-gray-400'}`}
+              : 'border-[var(--color-border-input)] hover:border-[var(--color-text-muted)]'}`}
         >
           {assignment.completed && (
             <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1502,12 +1509,12 @@ function AssignmentCard({ assignment, urgency, colors, onToggleComplete, onSelec
               {assignment.subject}
             </span>
           </div>
-          <h3 className={`font-medium text-gray-900 ${assignment.completed ? 'line-through text-gray-400' : ''}`}>
+          <h3 className={`font-medium text-[var(--color-text-primary)] ${assignment.completed ? 'line-through opacity-50' : ''}`}>
             {assignment.title}
           </h3>
           {expanded && assignment.description && (
             <div className="mt-3">
-              <p className="text-sm text-gray-500">{assignment.description}</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{assignment.description}</p>
               {!assignment.completed && (
                 <button
                   onClick={(e) => {
@@ -1530,11 +1537,11 @@ function AssignmentCard({ assignment, urgency, colors, onToggleComplete, onSelec
           <div className={`text-sm font-medium ${
             urgency === 'overdue' ? 'text-red-500' : 
             urgency === 'urgent' ? 'text-orange-500' : 
-            'text-gray-600'
+            'text-[var(--color-text-secondary)]'
           }`}>
             {formatDate(dueDate)}
           </div>
-          <div className="text-xs text-gray-400">{formatTime(dueDate)}</div>
+          <div className="text-xs text-[var(--color-text-muted)]">{formatTime(dueDate)}</div>
         </div>
       </div>
     </div>
@@ -1574,24 +1581,24 @@ function CalendarView({ assignments, subjectColors }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+    <div className="bg-[var(--color-bg-card)] rounded-2xl p-5 shadow-sm border border-[var(--color-border)] transition-colors duration-300">
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={() => setCurrentMonth(new Date(year, month - 1))}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-2 hover:bg-[var(--color-bg-gray)] rounded-lg transition-colors"
         >
-          <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 text-[var(--color-text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
           {currentMonth.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
         </h2>
         <button
           onClick={() => setCurrentMonth(new Date(year, month + 1))}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-2 hover:bg-[var(--color-bg-gray)] rounded-lg transition-colors"
         >
-          <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 text-[var(--color-text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
@@ -1599,7 +1606,7 @@ function CalendarView({ assignments, subjectColors }) {
       
       <div className="grid grid-cols-7 gap-1">
         {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-          <div key={day} className="text-center text-xs font-medium text-gray-400 py-2">
+          <div key={day} className="text-center text-xs font-medium text-[var(--color-text-muted)] py-2">
             {day}
           </div>
         ))}
@@ -1612,11 +1619,11 @@ function CalendarView({ assignments, subjectColors }) {
             <div
               key={idx}
               className={`min-h-[90px] rounded-xl p-2 ${
-                otherMonth ? 'bg-gray-50 opacity-40' : 'bg-gray-50'
-              } ${isToday ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
+                otherMonth ? 'bg-[var(--color-bg-gray)] opacity-40' : 'bg-[var(--color-bg-gray)]'
+              } ${isToday ? 'ring-2 ring-blue-500 bg-blue-500/10' : ''}`}
             >
               <div className={`text-sm mb-1 ${
-                isToday ? 'text-blue-600 font-bold' : 'text-gray-500 font-medium'
+                isToday ? 'text-blue-500 font-bold' : 'text-[var(--color-text-secondary)] font-medium'
               }`}>
                 {date.getDate()}
               </div>
@@ -1633,7 +1640,7 @@ function CalendarView({ assignments, subjectColors }) {
                 )
               })}
               {dayAssignments.length > 2 && (
-                <div className="text-[10px] text-gray-400 font-medium">+{dayAssignments.length - 2} more</div>
+                <div className="text-[10px] text-[var(--color-text-muted)] font-medium">+{dayAssignments.length - 2} more</div>
               )}
             </div>
           )
